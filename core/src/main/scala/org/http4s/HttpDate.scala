@@ -19,7 +19,7 @@ package org.http4s
 import cats.Functor
 import cats.effect.Clock
 import cats.implicits._
-import cats.parse.{Parser, Parser1, Rfc5234}
+import cats.parse.{Parser0, Parser, Rfc5234}
 import java.time.{DateTimeException, Instant, ZoneOffset, ZonedDateTime}
 import org.http4s.util.{Renderable, Writer}
 import scala.concurrent.duration.SECONDS
@@ -133,7 +133,7 @@ object HttpDate {
     unsafeFromInstant(dateTime.toInstant)
 
   /** `HTTP-date = IMF-fixdate / obs-date` */
-  private[http4s] val parser: Parser1[HttpDate] = {
+  private[http4s] val parser: Parser[HttpDate] = {
     import Parser.{char, string1}
     import Rfc5234.{digit, sp}
 
@@ -165,7 +165,7 @@ object HttpDate {
         .map(string1)
         .zipWithIndex
         .map { case (s, i) => string1(s).as(i) }
-        .reduceLeft(_.orElse1(_))
+        .reduceLeft(_.orElse(_))
         .soft
 
     /* day          = 2DIGIT */
@@ -199,7 +199,7 @@ object HttpDate {
         "Nov",
         "Dec").zipWithIndex
         .map { case (s, i) => string1(s).as(i + 1) }
-        .reduceLeft(_.orElse1(_))
+        .reduceLeft(_.orElse(_))
 
     /* year         = 4DIGIT */
     val year = (digit ~ digit ~ digit ~ digit).string.map(_.toInt)
@@ -254,7 +254,7 @@ object HttpDate {
     val dayNameL =
       List("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
         .map(string1)
-        .reduceLeft(_.orElse1(_))
+        .reduceLeft(_.orElse(_))
 
     /* rfc850-date  = day-name-l "," SP date2 SP time-of-day SP GMT
      *
@@ -277,7 +277,7 @@ object HttpDate {
     val oneDigit = digit.map(_ - '0')
 
     /* date3        = month SP ( 2DIGIT / ( SP 1DIGIT )) */
-    val date3 = (month <* sp) ~ (twoDigit.orElse1(sp *> oneDigit))
+    val date3 = (month <* sp) ~ (twoDigit.orElse(sp *> oneDigit))
 
     /* asctime-date = day-name SP date3 SP time-of-day SP year
      *              ; e.g., Jun  2
@@ -288,9 +288,9 @@ object HttpDate {
     }
 
     /* obs-date     = rfc850-date / asctime-date */
-    val obsDate = rfc850Date.orElse1(asctimeDate)
+    val obsDate = rfc850Date.orElse(asctimeDate)
 
-    imfFixdate.orElse1(obsDate)
+    imfFixdate.orElse(obsDate)
   }
 
 }

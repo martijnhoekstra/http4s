@@ -11,7 +11,7 @@
 package org.http4s
 
 import cats.data.NonEmptyList
-import cats.parse.Parser1
+import cats.parse.Parser
 import cats.{Order, Show}
 import org.http4s.internal.hashLower
 import org.http4s.internal.parsing.Rfc7230
@@ -55,7 +55,7 @@ object TransferCoding {
   def parseList(s: String): ParseResult[NonEmptyList[TransferCoding]] =
     ParseResult.fromParser(Rfc7230.headerRep1(parser), "Invalid transfer coding list")(s)
 
-  private[http4s] val parser: Parser1[TransferCoding] = {
+  private[http4s] val parser: Parser[TransferCoding] = {
     import cats.parse.Parser.{ignoreCase1, oneOf1}
     oneOf1(
       List(

@@ -11,7 +11,7 @@
 package org.http4s
 
 import cats.implicits.{catsSyntaxEither => _, _}
-import cats.parse.{Parser, Parser1}
+import cats.parse.{Parser0, Parser}
 import cats.{Eq, Order, Show}
 import org.http4s.headers.MediaRangeAndQValue
 import org.http4s.parser.Rfc2616BasicRules
@@ -89,9 +89,9 @@ object MediaRange {
   def parse(s: String): ParseResult[MediaRange] =
     ParseResult.fromParser(fullParser, "media range")(s)
 
-  private[http4s] val parser: Parser1[MediaRange] = mediaRangeParser(getMediaRange)
+  private[http4s] val parser: Parser[MediaRange] = mediaRangeParser(getMediaRange)
 
-  private[http4s] val fullParser: Parser1[MediaRange] = {
+  private[http4s] val fullParser: Parser[MediaRange] = {
     val extension = Parser.rep1(MediaType.mediaTypeExtension, 1).?
 
     (parser ~ extension).map { case (mr, ext) =>
@@ -108,7 +108,7 @@ object MediaRange {
     sw.result
   }
 
-  private[http4s] def mediaRangeParser[A](builder: (String, String) => A): Parser1[A] = {
+  private[http4s] def mediaRangeParser[A](builder: (String, String) => A): Parser[A] = {
     import Parser.string1
     import org.http4s.internal.parsing.Rfc7230.token
 
@@ -116,10 +116,10 @@ object MediaRange {
 
     string1("*/*")
       .as(("*", "*"))
-      .orElse1(
-        (token <* string1("/")) ~ anyStr1.as("*").orElse1(token)
+      .orElse(
+        (token <* string1("/")) ~ anyStr1.as("*").orElse(token)
       )
-      .orElse1(
+      .orElse(
         anyStr1.as(("*", "*"))
       )
       .map { case (s1: String, s2: String) =>
@@ -232,7 +232,7 @@ object MediaType extends MimeDB {
   val extensionMap: Map[String, MediaType] =
     allMediaTypes.flatMap(m => m.fileExtensions.map(_ -> m)).toMap
 
-  val parser: Parser1[MediaType] = {
+  val parser: Parser[MediaType] = {
     val mediaType = MediaRange.mediaRangeParser(getMediaType)
     val extension = Parser.rep1(mediaTypeExtension, 1).?
 
@@ -259,7 +259,7 @@ object MediaType extends MimeDB {
       (mainType.toLowerCase, subType.toLowerCase),
       new MediaType(mainType.toLowerCase, subType.toLowerCase))
 
-  private[http4s] def mediaTypeExtension: Parser1[(String, String)] = {
+  private[http4s] def mediaTypeExtension: Parser[(String, String)] = {
     import Parser.char
     import Rfc2616BasicRules.optWs
     import org.http4s.internal.parsing.Rfc7230.{quotedString, token}

@@ -16,7 +16,7 @@
 
 package org.http4s.internal.parsing
 
-import cats.parse.Parser1
+import cats.parse.Parser
 import cats.parse.Parser.{char, charIn, string1}
 import cats.parse.Rfc5234.{digit, sp}
 
@@ -35,13 +35,13 @@ private[http4s] object Rfc2616 {
    *                | "{" | "}" | SP  | HT
    * token          = 1*<any CHAR except CTLs or separators>
    */
-  val token: Parser1[String] = {
+  val token: Parser[String] = {
     val ascii = Set(0.toChar to 127.toChar: _*)
     val ctl = Set(0.toChar to 31.toChar: _*) + 127.toChar
     val separators = Set("()<>@,;:\\\"/[]?={} \t".toSeq: _*)
 
     val tchar = charIn(ascii -- ctl -- separators)
-    tchar.rep1.string
+    tchar.rep.string
   }
 
   final case class Rfc1123Date(
@@ -53,13 +53,13 @@ private[http4s] object Rfc2616 {
       min: Int,
       sec: Int)
 
-  val rfc1123Date: Parser1[Rfc1123Date] = {
+  val rfc1123Date: Parser[Rfc1123Date] = {
     /* wkday        = "Mon" | "Tue" | "Wed"
      *              | "Thu" | "Fri" | "Sat" | "Sun"
      */
     val wkday = List("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun").zipWithIndex
       .map { case (s, i) => string1(s).as(i) }
-      .reduceLeft(_.orElse1(_))
+      .reduceLeft(_.orElse(_))
 
     val twoDigit = (digit ~ digit).string.map(_.toInt)
 
@@ -84,7 +84,7 @@ private[http4s] object Rfc2616 {
         "Nov",
         "Dec").zipWithIndex
         .map { case (s, i) => string1(s).as(i + 1) }
-        .reduceLeft(_.orElse1(_))
+        .reduceLeft(_.orElse(_))
 
     /* date1        = 2DIGIT SP month SP 4DIGIT
      *              ; day month year (e.g., 02 Jun 1982)
