@@ -17,7 +17,7 @@
 package org.http4s
 package headers
 
-import cats.parse.{Numbers, Parser, Parser0 => P0}
+import cats.parse.{Numbers, Parser}
 import org.http4s.headers.Range.SubRange
 import org.http4s.internal.parsing.Rfc7230
 import org.http4s.util.Writer
@@ -38,24 +38,24 @@ object `Content-Range` extends HeaderKey.Internal[`Content-Range`] with HeaderKe
 
   val parser: Parser[`Content-Range`] = {
 
-    val nonNegativeLong = Numbers.digits1
+    val nonNegativeLong = Numbers.digits
       .mapFilter { ds =>
         try Some(ds.toLong)
         catch { case _: NumberFormatException => None }
       }
 
     // byte-range = first-byte-pos "-" last-byte-pos
-    val byteRange = ((nonNegativeLong <* P.char('-')) ~ nonNegativeLong)
+    val byteRange = ((nonNegativeLong <* Parser.char('-')) ~ nonNegativeLong)
       .map { case (first, last) => SubRange(first, last) }
 
     // byte-range-resp = byte-range "/" ( complete-length / "*" )
     val byteRangeResp =
-      (byteRange <* P.char('/')) ~ nonNegativeLong.map(Some(_)).orElse(P.char('*').as(None))
+      (byteRange <* Parser.char('/')) ~ nonNegativeLong.map(Some(_)).orElse(Parser.char('*').as(None))
 
     // byte-content-range = bytes-unit SP ( byte-range-resp / unsatisfied-range )
     // `unsatisfied-range` is not represented
     val byteContentRange =
-      ((Rfc7230.token.map(RangeUnit(_)) <* P.char(' ')) ~ byteRangeResp)
+      ((Rfc7230.token.map(RangeUnit(_)) <* Parser.char(' ')) ~ byteRangeResp)
         .map { case (unit, (range, length)) => `Content-Range`(unit, range, length) }
 
     // Content-Range = byte-content-range / other-content-range

@@ -45,7 +45,7 @@ object Link extends HeaderKey.Internal[Link] with HeaderKey.Recurring {
       }
     }
 
-    val linkParam: Parser0[LinkParam] = {
+    val linkParam: Parser[LinkParam] = {
       val relParser = (string("rel=") *> token.orElse(quotedString))
         .map { rel =>
           Rel(rel)

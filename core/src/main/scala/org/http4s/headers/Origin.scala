@@ -19,7 +19,7 @@ package headers
 
 import cats.data.NonEmptyList
 import cats.implicits.toBifunctorOps
-import cats.parse.{Parser0, Rfc5234}
+import cats.parse.{Parser0, Parser, Rfc5234}
 import org.http4s.Uri.RegName
 import org.http4s.util.{Renderable, Writer}
 
@@ -63,11 +63,11 @@ object Origin extends HeaderKey.Internal[Origin] with HeaderKey.Singleton {
   }
 
   private[http4s] val parser: Parser0[Origin] = {
-    import Parser.{`end`, char, rep, rep1, string1, until1}
+    import Parser.{`end`, char, string, until}
     import Rfc5234.{alpha, digit}
 
     val unknownScheme =
-      alpha ~ alpha.orElse1(digit).orElse1(char('+')).orElse1(char('-')).orElse1(char('.')).rep0orElseorElseorElseorElse
+      alpha ~ alpha.orElse(digit).orElse(char('+')).orElse(char('-')).orElse(char('.'))
     val http = string("http")
     val https = string("https")
     val scheme = List(https, http, unknownScheme)
@@ -77,15 +77,15 @@ object Origin extends HeaderKey.Internal[Origin] with HeaderKey.Singleton {
     val stringHost = until(char(':').orElse(`end`)).map(RegName.apply)
     val bracketedIpv6 = char('[') *> Uri.Ipv6Address.parser <* char(']')
     val host = List(bracketedIpv6, Uri.Ipv4Address.parser, stringHost).reduceLeft(_ orElse _)
-    val port = char(':') *> digit.rep(1).string.map(_.toInt)
+    val port = char(':') *> digit.rep.string.map(_.toInt)
     val nullHost = (string("null") *> `end`).orElse(`end`).as(Origin.Null)
 
     val singleHost = ((scheme <* string("://")) ~ host ~ port.?).map { case ((sch, host), port) =>
       Origin.Host(sch, host, port)
     }
 
-    nullHost.orElse((singleHost ~ (char(' ') *> singleHost).rep0).map(hosts =>
-      Origin.HostList(NonEmptyList.of(hosts._1, hosts._2: _*))))
+    nullHost.orElse(Parser.repSep(singleHost, 1, Parser.char(' ')).map(hosts =>
+      Origin.HostList(hosts)))
   }
 
   override def parse(s: String): ParseResult[Origin] =

@@ -10,7 +10,7 @@
 
 package org.http4s
 
-import cats.parse.{Parser0, Parser, Rfc5234}
+import cats.parse.{Parser, Rfc5234}
 import java.time.{DateTimeException, ZoneOffset, ZonedDateTime}
 import org.http4s.internal.parsing.{Rfc1034, Rfc2616, Rfc6265}
 import org.http4s.util.{Renderable, Writer}
@@ -92,7 +92,7 @@ object ResponseCookie
       ResponseCookie
     ] {
   private[http4s] val parser: Parser[ResponseCookie] = {
-    import Parser.{char, charIn, failWith, ignoreCase1, pure, rep, string1}
+    import Parser.{char, charIn, failWith, ignoreCase, pure, string}
     import Rfc2616.Rfc1123Date
     import Rfc5234.digit
     import Rfc6265.{cookieName, cookieValue}

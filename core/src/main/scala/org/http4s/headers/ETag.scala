@@ -17,7 +17,7 @@
 package org.http4s
 package headers
 
-import cats.parse.{Parser0, Parser, Rfc5234}
+import cats.parse.{Parser, Rfc5234}
 import cats.Show
 import org.http4s.internal.parsing.Rfc7230
 import org.http4s.util.Writer
@@ -44,7 +44,7 @@ object ETag extends HeaderKey.Internal[ETag] with HeaderKey.Singleton {
    * @see [[https://tools.ietf.org/html/rfc7232#section-2.3]]
    */
   private[http4s] val parser: Parser[ETag] = {
-    import Parser.{charIn, string1}
+    import Parser.{charIn, string}
     import Rfc5234.{dquote}
     import Rfc7230.{obsText}
 
