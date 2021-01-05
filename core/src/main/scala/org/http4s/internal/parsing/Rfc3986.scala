@@ -17,7 +17,7 @@
 package org.http4s
 package internal.parsing
 
-import cats.parse.Parser.{char, charIn, string1}
+import cats.parse.Parser.{char, charIn, string}
 import cats.parse.Parser
 import cats.syntax.all._
 
@@ -63,7 +63,7 @@ private[http4s] object Rfc3986 {
     val decOctet = (char('1') ~ digit ~ digit).backtrack
       .orElse(char('2') ~ charIn('0' to '4') ~ digit)
       .backtrack
-      .orElse(string1("25") ~ charIn('0' to '5'))
+      .orElse(string("25") ~ charIn('0' to '5'))
       .backtrack
       .orElse(charIn('1' to '9') ~ digit)
       .backtrack

@@ -11,7 +11,7 @@
 package org.http4s
 
 import cats.implicits.{catsSyntaxEither => _, _}
-import cats.parse.{Parser0, Parser}
+import cats.parse.Parser
 import cats.{Eq, Order, Show}
 import org.http4s.headers.MediaRangeAndQValue
 import org.http4s.parser.Rfc2616BasicRules
@@ -92,10 +92,10 @@ object MediaRange {
   private[http4s] val parser: Parser[MediaRange] = mediaRangeParser(getMediaRange)
 
   private[http4s] val fullParser: Parser[MediaRange] = {
-    val extension = Parser.rep1(MediaType.mediaTypeExtension, 1).?
+    val extension = MediaType.mediaTypeExtension.rep0
 
-    (parser ~ extension).map { case (mr, ext) =>
-      ext.fold(mr)(ex => mr.withExtensions(ex.toList.toMap))
+    (parser ~ extension).map {
+      case (mr, l) => mr.withExtensions(l.toMap)
     }
   }
 
@@ -109,15 +109,15 @@ object MediaRange {
   }
 
   private[http4s] def mediaRangeParser[A](builder: (String, String) => A): Parser[A] = {
-    import Parser.string1
+    import Parser.string
     import org.http4s.internal.parsing.Rfc7230.token
 
-    val anyStr1 = string1("*")
+    val anyStr1 = string("*")
 
-    string1("*/*")
+    string("*/*")
       .as(("*", "*"))
       .orElse(
-        (token <* string1("/")) ~ anyStr1.as("*").orElse(token)
+        (token <* string("/")) ~ anyStr1.as("*").orElse(token)
       )
       .orElse(
         anyStr1.as(("*", "*"))
@@ -234,10 +234,10 @@ object MediaType extends MimeDB {
 
   val parser: Parser[MediaType] = {
     val mediaType = MediaRange.mediaRangeParser(getMediaType)
-    val extension = Parser.rep1(mediaTypeExtension, 1).?
+    val extension = mediaTypeExtension.rep0
 
     (mediaType ~ extension).map { case (mr, ext) =>
-      ext.fold(mr)(ex => mr.withExtensions(ex.toList.toMap))
+      mr.withExtensions(ext.toMap)
     }
   }
 

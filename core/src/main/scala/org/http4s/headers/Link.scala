@@ -45,23 +45,23 @@ object Link extends HeaderKey.Internal[Link] with HeaderKey.Recurring {
       }
     }
 
-    val linkParam: Parser0[LinkParam] = {
-      val relParser = (string1("rel=") *> token.orElse(quotedString))
+    val linkParam: Parser[LinkParam] = {
+      val relParser = (string("rel=") *> token.orElse(quotedString))
         .map { rel =>
           Rel(rel)
         }
 
-      val revParser = (string1("rev=") *> token.orElse(quotedString)).map { rev =>
+      val revParser = (string("rev=") *> token.orElse(quotedString)).map { rev =>
         Rev(rev)
       }
 
-      val titleParser = (string1("title=") *> token.orElse(quotedString)).map { title =>
+      val titleParser = (string("title=") *> token.orElse(quotedString)).map { title =>
         Title(title)
       }
 
       val typeParser = {
-        val mediaRange = string1("type=") *> MediaRange.parser.orElse(
-          string1("\"") *> MediaRange.parser <* string1("\""))
+        val mediaRange = string("type=") *> MediaRange.parser.orElse(
+          string("\"") *> MediaRange.parser <* string("\""))
         mediaRange.map(tpe => Type(tpe))
       }
 
@@ -69,7 +69,7 @@ object Link extends HeaderKey.Internal[Link] with HeaderKey.Recurring {
     }
 
     val linkValueWithAttr: Parser[LinkValue] =
-      ((char('<') *> linkValue <* char('>')) ~ char(';') *> optWs *> linkParam.rep0).map {
+      ((char('<') *> linkValue <* char('>')) ~ (char(';') *> optWs *> linkParam).rep0).map {
         case (linkValue, linkParams) =>
           linkParams.foldLeft(linkValue) { case (lv, lp) =>
             lp match {

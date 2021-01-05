@@ -16,7 +16,7 @@
 
 package org.http4s.internal.parsing
 
-import cats.parse.Parser.{char, charIn, rep1Sep}
+import cats.parse.Parser.{char, charIn, repSep}
 import cats.parse.Parser
 import org.http4s.util.{CaseInsensitiveString => CIString}
 
@@ -46,9 +46,9 @@ private[http4s] object Rfc1034 {
      * letter or a digit.  Host software MUST support this more liberal
      * syntax.
      */
-    val label = rep1Sep(letDig.rep, 1, char('-'))
+    val label = repSep(letDig.rep, 1, char('-'))
 
     /* <subdomain> ::= <label> | <subdomain> "." <label> */
-    rep1Sep(label, 1, char('.')).string.map(CIString(_))
+    repSep(label, 1, char('.')).string.map(CIString(_))
   }
 }

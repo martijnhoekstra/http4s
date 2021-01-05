@@ -17,7 +17,7 @@
 package org.http4s.internal.parsing
 
 import cats.parse.Parser
-import cats.parse.Parser.{char, charIn, string1}
+import cats.parse.Parser.{char, charIn, string}
 import cats.parse.Rfc5234.{digit, sp}
 
 /** Common rules defined in RFC2616.  This RFC is now obsolete,
@@ -58,7 +58,7 @@ private[http4s] object Rfc2616 {
      *              | "Thu" | "Fri" | "Sat" | "Sun"
      */
     val wkday = List("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun").zipWithIndex
-      .map { case (s, i) => string1(s).as(i) }
+      .map { case (s, i) => string(s).as(i) }
       .reduceLeft(_.orElse(_))
 
     val twoDigit = (digit ~ digit).string.map(_.toInt)
@@ -83,7 +83,7 @@ private[http4s] object Rfc2616 {
         "Oct",
         "Nov",
         "Dec").zipWithIndex
-        .map { case (s, i) => string1(s).as(i + 1) }
+        .map { case (s, i) => string(s).as(i + 1) }
         .reduceLeft(_.orElse(_))
 
     /* date1        = 2DIGIT SP month SP 4DIGIT
@@ -97,7 +97,7 @@ private[http4s] object Rfc2616 {
     val time = (twoDigit <* char(':')) ~ (twoDigit <* char(':')) ~ twoDigit
 
     /* rfc1123-date = wkday "," SP date1 SP time SP "GMT" */
-    ((wkday <* string1(", ")) ~ (date1 <* sp) ~ (time <* string1(" GMT"))).map {
+    ((wkday <* string(", ")) ~ (date1 <* sp) ~ (time <* string(" GMT"))).map {
       case ((wkday, ((day, month), year)), ((hour, min), sec)) =>
         Rfc1123Date(wkday, year, month, day, hour, min, sec)
     }

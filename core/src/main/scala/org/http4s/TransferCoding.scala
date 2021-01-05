@@ -56,14 +56,14 @@ object TransferCoding {
     ParseResult.fromParser(Rfc7230.headerRep1(parser), "Invalid transfer coding list")(s)
 
   private[http4s] val parser: Parser[TransferCoding] = {
-    import cats.parse.Parser.{ignoreCase1, oneOf1}
-    oneOf1(
+    import cats.parse.Parser.{ignoreCase, oneOf}
+    oneOf(
       List(
-        ignoreCase1("chunked").as(chunked),
-        ignoreCase1("compress").as(compress),
-        ignoreCase1("deflate").as(deflate),
-        ignoreCase1("gzip").as(gzip),
-        ignoreCase1("identity").as(identity)
+        ignoreCase("chunked").as(chunked),
+        ignoreCase("compress").as(compress),
+        ignoreCase("deflate").as(deflate),
+        ignoreCase("gzip").as(gzip),
+        ignoreCase("identity").as(identity)
       ))
   }
 

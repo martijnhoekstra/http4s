@@ -16,7 +16,7 @@
 
 package org.http4s.internal.parsing
 
-import cats.parse.Parser.{char, charIn, rep}
+import cats.parse.Parser.{char, charIn}
 import cats.parse.Parser
 import cats.parse.Rfc5234.dquote
 
